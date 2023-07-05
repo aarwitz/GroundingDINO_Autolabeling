@@ -5,7 +5,7 @@ Text-prompt to axis-aligend bounding box. This repo contains the modifications m
 # Example application in logistics
 
 ![alt text](https://github.com/aarwitz/GroundingDINO_Autolabeling/blob/master/package_ex.jpg)
-![alt text](https://github.com/aarwitz/GroundingDINO_Autolabeling/blob/master/testtt.jpg)
+![alt text](https://github.com/aarwitz/GroundingDINO_Autolabeling/blob/master/testtt.png)
 
 
 <table><tr>
