@@ -110,7 +110,6 @@ def overlay(old_path,new_path,mask,count):
 
 if __name__ == '__main__':
 
-	# tried creating bing chat with aaronhorowitz972@outlook.com Alh972
 	#
 
 	# Define path to image with box
