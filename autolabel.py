@@ -19,8 +19,6 @@ Uses an adapted cv2.minAreaRect() to create rotated bounding boxes of objects be
 
 """
 
-
-
 from pathlib import Path
 import math
 import torch
@@ -34,7 +32,7 @@ import numpy as np
 import json
 import shutil
 from min_in_image_area_rect import min_in_image_area_rect
-
+import supervision as sv
 
 # Create empty cartel json to store labels in
 cartel_json = {
@@ -64,15 +62,16 @@ def dino_detect(image: np.ndarray) -> np.ndarray:
 
     # Define classes and thresholds
 
-    # CLASSES = ['white and black bags with white labels and black barcodes on their surface, all on a white, checkered bombay sorter.']
+    CLASSES = ['white and black bags with white labels and black barcodes on their surface, all on a white, checkered bombay sorter.']
    # CLASSES = ['package . box . envelope . bag . mail . product . item . ' ]
    # CLASSES = ['package . brown box . parcel . orange envelope . brown envelope . shipments . bundels . cartons . box . bag . mail . product . item . toy . grocery .' ]
     # CLASSES = ['amazon package. parcel . box . mail . envelope . mail . product . tote . bag . grocery . bin .']
     # CLASSES = ['orange envelope package.']
     # CLASSES = ['package . box . ']
-    CLASSES = ['amazon package . bag . orange envelope . parcel . box . mail . jiffy bag . poly bag . ']
-    BOX_TRESHOLD = 0.1
-    TEXT_TRESHOLD = 0.1
+    # CLASSES = [' package . bag . envelope . parcel . box . mail . jiffy bag . poly bag . ']
+
+    BOX_TRESHOLD = 0.32
+    TEXT_TRESHOLD = 0.32
     # detect object
     detections = grounding_dino_model.predict_with_classes(
         image=image,
@@ -161,16 +160,18 @@ def rotate_bbox(image: np.ndarray, masks: np.ndarray, image_fname: str, output_p
     return box_info_4json
 
 
-# def label_image_with_class(image: np.ndarray, detections, mask):
-#      CLASSES = ['package . box . mail . bag . product . item .' ]
-#      box_annotator = sv.BoxAnnotator()
-#      mask_annotator = sv.MaskAnnotator()
-#      labels = [
-#           f"{CLASSES[class_id]} {confidence:0.2f}"
-#           for _, _, confidence, class_id, _
-#           in detections]
-#      annotated_image = mask)annotator.annotate(scene=image.copy(), detections=detections)
+def label_image_with_class(image: np.ndarray, detections, mask):
+    CLASSES = ['package . box . mail . bag . product . item .' ]
+    box_annotator = sv.BoxAnnotator()
+    mask_annotator = sv.MaskAnnotator()
+    labels = [
+          f"{CLASSES[class_id]} {confidence:0.2f}"
+          for _, _, confidence, class_id, _
+          in detections]
+    annotated_image = mask_annotator.annotate(scene=image.copy(), detections=detections)
+    annotated_image = box_annotator.annotate(scene=annotated_image, detections=detections, labels=labels)
 
+    sv.plot_image(annotated_image, (16, 16))
 
 
 def get_rotated_bounding_box_info(box):
@@ -215,7 +216,7 @@ def main(image_path: Path, output_path: Path) -> None:
         # Rotate bboxes using masks and write annotation to image and save
         box_info = rotate_bbox(image, masks, image_fname, output_path, count)
         # get the top right and bottom left coordinates
-        
+        label_image_with_class(image, bboxes, masks)
         # for box in boxes:
         #     boxes_labels = get_top_right_bottom_left
         # Store label in Cartel json
@@ -229,7 +230,11 @@ def main(image_path: Path, output_path: Path) -> None:
 
 if __name__ == '__main__':
     # Define path to a folder containing only images
-    image_path = Path(r"/home/aaron/Pictures/NEW/FSRI_4")
+    image_path = Path(r"/home/aaron/Pictures/NEW/FedexBombay")
+    # Define path to output images, labeled images, and labels (data.json) to
+    output_path = Path(r"/home/aaron/Pictures/NEW/FedexBombay_Labeled")
+    # Call main function to autolabel images in image_path
+    main(image_path, output_path)
     # Define path to output images, labeled images, and labels (data.json) to
     output_path = Path(r"/home/aaron/Pictures/NEW/FSRI_4_Labeled")
     # Call main function to autolabel images in image_path
